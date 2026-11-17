@@ -1,0 +1,40 @@
+from typing import Annotated, TypedDict
+from langgraph.graph import StateGraph , START,END
+import operator
+
+class JarvisState(TypedDict):#central memory hai jise tijori kahte hai
+    messages:Annotated[list[str],operator.add]# isse ham reducer kahte hai
+    meeting_status:str
+    alarm_status:str
+    
+def calendar_scanner(state:JarvisState):# dimag ke alag alag module hai 
+    print('node 1 dimag process: jarvis calendar scan kar raha hai')
+    return {"messages":[ "calendar me subah 8 baje ki meeting  mili"],"meeting_status":"yes"}
+
+def  alarm_system(state:JarvisState):
+    print('dimag2 jo hai process ho raha hai: jarvis alarm  system ko active kar raha hai')
+    
+    
+    return {"messages":["jarvis ne subah ke 7:30 par alarm laga diya hai"], "alarm_status":"set_7_30_am"}
+
+
+workflow = StateGraph(JarvisState)
+workflow.add_node("scanner",calendar_scanner)
+workflow.add_node("alarm",alarm_system)
+
+workflow.add_edge(START,"scanner")
+workflow.add_edge("scanner",'alarm')
+workflow.add_edge("alarm",END)
+
+app_graph = workflow.compile()
+initial_input = {"messages":['jarvis:kal ki meeting check karo aur  alarm laga do'],
+                     'meeting_status':"UNKNOWN",
+                     "alarm_status":"OFF"}
+    
+print("langraph engine chaalu ho rraha hai")
+final_output = app_graph.invoke(initial_input)
+print("\n final box ka sach (final state output )--")
+print(f"message:{final_output["messages"]}")
+print(f"alarm_status:{final_output["alarm_status"]}")
+      
+      
